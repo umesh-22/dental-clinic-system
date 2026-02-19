@@ -1,5 +1,6 @@
 import prisma from '../config/database';
 import { AppError } from '../utils/errors';
+import { Decimal } from '@prisma/client/runtime/library'; // Correct import
 
 export const clockIn = async (userId: string) => {
   const today = new Date();
@@ -17,7 +18,9 @@ export const clockIn = async (userId: string) => {
     where: { userId_date: { userId, date: today } },
     update: { clockIn: new Date() },
     create: { userId, date: today, clockIn: new Date() },
-    include: { user: { select: { id: true, firstName: true, lastName: true } } },
+    include: {
+      user: { select: { id: true, firstName: true, lastName: true } },
+    },
   });
 
   return attendance;
@@ -34,7 +37,6 @@ export const clockOut = async (userId: string) => {
   if (!attendance || !attendance.clockIn) {
     throw new AppError('Not clocked in today', 400);
   }
-
   if (attendance.clockOut) {
     throw new AppError('Already clocked out today', 400);
   }
@@ -42,18 +44,20 @@ export const clockOut = async (userId: string) => {
   const clockOutTime = new Date();
   const clockInTime = attendance.clockIn;
 
+  // Calculate total hours
   const breakDuration =
     attendance.breakStart && attendance.breakEnd
       ? (attendance.breakEnd.getTime() - attendance.breakStart.getTime()) / (1000 * 60 * 60)
       : 0;
 
-  const calculatedHours = (clockOutTime.getTime() - clockInTime.getTime()) / (1000 * 60 * 60) - breakDuration;
-  const totalHours = calculatedHours > 0 ? calculatedHours : 0;
+  const totalHours = new Decimal((clockOutTime.getTime() - clockInTime.getTime()) / (1000 * 60 * 60) - breakDuration);
 
   const updated = await prisma.attendance.update({
     where: { userId_date: { userId, date: today } },
-    data: { clockOut: clockOutTime, totalHours },
-    include: { user: { select: { id: true, firstName: true, lastName: true } } },
+    data: { clockOut: clockOutTime, totalHours: totalHours.gte(0) ? totalHours : new Decimal(0) },
+    include: {
+      user: { select: { id: true, firstName: true, lastName: true } },
+    },
   });
 
   return updated;
@@ -67,8 +71,8 @@ export const getAttendance = async (
   limit: number = 20
 ) => {
   const skip = (page - 1) * limit;
-  const where: any = {};
 
+  const where: any = {};
   if (userId) where.userId = userId;
   if (startDate || endDate) {
     where.date = {};
@@ -76,16 +80,24 @@ export const getAttendance = async (
     if (endDate) where.date.lte = endDate;
   }
 
-  const [attendance, total] = await Promise.all([
+  const [records, total] = await Promise.all([
     prisma.attendance.findMany({
       where,
       skip,
       take: limit,
       orderBy: { date: 'desc' },
-      include: { user: { select: { id: true, firstName: true, lastName: true, role: true } } },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, role: true } },
+      },
     }),
     prisma.attendance.count({ where }),
   ]);
+
+  // Convert Decimal to number for frontend
+  const attendance = records.map((rec:any) => ({
+    ...rec,
+    totalHours: rec.totalHours ? Number(rec.totalHours) : 0,
+  }));
 
   return {
     attendance,
@@ -105,11 +117,9 @@ export const updateAttendance = async (
     where: { userId_date: { userId, date: attendanceDate } },
   });
 
-  if (!attendance) {
-    throw new AppError('Attendance record not found', 404);
-  }
+  if (!attendance) throw new AppError('Attendance record not found', 404);
 
-  let totalHours = attendance.totalHours ?? 0;
+  let totalHours = attendance.totalHours ? new Decimal(attendance.totalHours) : new Decimal(0);
 
   if (data.clockIn || data.clockOut) {
     const clockIn = data.clockIn || attendance.clockIn;
@@ -122,15 +132,17 @@ export const updateAttendance = async (
             (1000 * 60 * 60)
           : 0;
 
-      const calculatedHours = (clockOut.getTime() - clockIn.getTime()) / (1000 * 60 * 60) - breakDuration;
-      totalHours = calculatedHours > 0 ? calculatedHours : 0;
+      totalHours = new Decimal((clockOut.getTime() - clockIn.getTime()) / (1000 * 60 * 60) - breakDuration);
+      if (totalHours.lt(0)) totalHours = new Decimal(0);
     }
   }
 
   const updated = await prisma.attendance.update({
     where: { userId_date: { userId, date: attendanceDate } },
     data: { ...data, totalHours },
-    include: { user: { select: { id: true, firstName: true, lastName: true } } },
+    include: {
+      user: { select: { id: true, firstName: true, lastName: true } },
+    },
   });
 
   return updated;

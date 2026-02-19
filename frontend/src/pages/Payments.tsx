@@ -177,10 +177,12 @@ const Payments = () => {
                   {data?.payments?.map((payment: Payment) => (
                     <TableRow key={payment.id}>
                       <TableCell className="font-medium">
-                        {payment.invoice?.invoiceNumber || 'N/A'}
+                        {/* {payment.invoiceid?.invoiceNumber || 'N/A'} */}
+                         {payment.invoiceId|| 'N/A'}
                       </TableCell>
                       <TableCell>
-                        {payment.patient?.firstName} {payment.patient?.lastName}
+                        {/* {payment.patientId?.} {payment.patient?.lastName} */}
+                        {payment.patientId} {payment.patientId}
                       </TableCell>
                       <TableCell>₹{payment.amount.toLocaleString()}</TableCell>
                       <TableCell>

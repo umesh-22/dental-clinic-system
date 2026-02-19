@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
-import { Clock, LogInIn, LogOutOut, Calendar, LogIn, LogOut } from 'lucide-react';
+import { Clock, Calendar, LogIn, LogOut } from 'lucide-react';
 import type { Attendance } from '@/types';
 import { format } from 'date-fns';
 import { useAuthStore } from '@/store/authStore';

@@ -1,6 +1,6 @@
 import prisma from '../config/database';
 import { AppError } from '../utils/errors';
-import { Decimal } from '@prisma/client/runtime/library'; // Correct import
+import { Decimal } from '@prisma/client/runtime/library';
 
 export const clockIn = async (userId: string) => {
   const today = new Date();

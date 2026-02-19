@@ -24,25 +24,29 @@
 # # Start server
 # CMD ["npm", "start"]
 
+FROM node:20-bullseye
 
-FROM node:20-alpine
-
-# Install minimal tools
-RUN apk add --no-cache bash git openssh
+# Install system dependencies for Prisma
+RUN apt-get update && apt-get install -y \
+    libssl1.1 \
+    bash \
+    git \
+    openssh-client \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy package files and prisma schema first (for layer caching)
+# Copy package files and prisma schema first (cache layer)
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies
-RUN npm install
+# Install only production dependencies
+RUN npm ci --omit=dev
 
-# Generate Prisma Client
+# Generate Prisma client
 RUN npx prisma generate
 
-# Copy source code
+# Copy app source
 COPY . .
 
 # Build TypeScript
@@ -53,4 +57,5 @@ EXPOSE 5000
 
 # Start server
 CMD ["npm", "start"]
+
 

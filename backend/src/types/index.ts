@@ -1,6 +1,7 @@
 import { Request } from "express";
 import { UserRole, AppointmentStatus, PaymentMethod, PaymentStatus, DocumentType } from "@prisma/client";
 
+
 export interface JWTPayload {
   userId: string;
   email: string;
@@ -14,5 +15,4 @@ export interface RequestWithUser extends Request {
     role: UserRole;
   };
 }
-
 export { UserRole, AppointmentStatus, PaymentMethod, PaymentStatus, DocumentType };

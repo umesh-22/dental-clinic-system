@@ -24,9 +24,10 @@ const app = express();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: config.frontendUrl,
+  origin: [config.frontendUrl,'https://dental-clinic-system-five.vercel.app'],
   credentials: true,
 }));
+app.use(express.json());
 
 // Rate limiting
 const limiter = rateLimit({

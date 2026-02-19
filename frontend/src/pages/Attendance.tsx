@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
-import { Clock, ClockIn, ClockOut, Calendar } from 'lucide-react';
+import { Clock, LogInIn, LogOutOut, Calendar, LogIn, LogOut } from 'lucide-react';
 import type { Attendance } from '@/types';
 import { format } from 'date-fns';
 import { useAuthStore } from '@/store/authStore';
@@ -87,7 +87,7 @@ const Attendance = () => {
             disabled={!canClockIn || clockInMutation.isPending}
             variant={canClockIn ? 'default' : 'outline'}
           >
-            <ClockIn className="h-4 w-4 mr-2" />
+            <LogIn className="h-4 w-4 mr-2" />
             Clock In
           </Button>
           <Button
@@ -95,7 +95,7 @@ const Attendance = () => {
             disabled={!canClockOut || clockOutMutation.isPending}
             variant={canClockOut ? 'default' : 'outline'}
           >
-            <ClockOut className="h-4 w-4 mr-2" />
+            <LogOut className="h-4 w-4 mr-2" />
             Clock Out
           </Button>
         </div>

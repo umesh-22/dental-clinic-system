@@ -8,7 +8,6 @@ export const generateInvoicePDF = async (invoice: any): Promise<string> => {
   const fileName = `invoice-${invoice.invoiceNumber}-${Date.now()}.pdf`;
   const filePath = path.join(config.uploadDir, fileName);
 
-  // Ensure directory exists
   if (!fs.existsSync(config.uploadDir)) {
     fs.mkdirSync(config.uploadDir, { recursive: true });
   }
@@ -21,7 +20,7 @@ export const generateInvoicePDF = async (invoice: any): Promise<string> => {
   doc.fontSize(12).text(config.clinicAddress, { align: 'center' });
   doc.moveDown();
 
-  // Invoice details
+  // Invoice title
   doc.fontSize(16).text('INVOICE', { align: 'center' });
   doc.moveDown();
 
@@ -43,17 +42,15 @@ export const generateInvoicePDF = async (invoice: any): Promise<string> => {
     doc.text(`Phone: ${invoice.patient.phone}`, 350, 195);
   }
 
-  doc.moveDown(5);
+  let y = 250;
 
   // Items table
-  let y = 250;
   doc.fontSize(10);
   doc.text('Description', 50, y);
   doc.text('Qty', 300, y);
   doc.text('Unit Price', 350, y);
   doc.text('Total', 450, y);
   y += 20;
-
   doc.moveTo(50, y).lineTo(550, y).stroke();
   y += 10;
 
@@ -95,7 +92,7 @@ export const generateInvoicePDF = async (invoice: any): Promise<string> => {
   doc.text(`Balance: ₹${(Number(invoice.total) - Number(invoice.paidAmount)).toFixed(2)}`, 350, y);
 
   // Footer
-  doc.fontSize(8).text('Thank you for your business!', { align: 'center' }, doc.page.height - 50);
+  doc.fontSize(8).text('Thank you for your business!', 50, doc.page.height - 50, { align: 'center' });
 
   doc.end();
 
@@ -136,14 +133,11 @@ export const generatePrescriptionPDF = async (prescription: any): Promise<string
 
   doc.text(`Doctor: Dr. ${prescription.doctor.firstName} ${prescription.doctor.lastName}`, 350, 150);
 
-  doc.moveDown(3);
-
-  // Medications
   let y = 250;
   doc.fontSize(12).font('Helvetica-Bold').text('Medications:', 50, y);
   y += 25;
-
   doc.fontSize(10).font('Helvetica');
+
   prescription.items.forEach((item: any, index: number) => {
     doc.text(`${index + 1}. ${item.medicationName}`, 50, y);
     y += 15;
@@ -159,7 +153,6 @@ export const generatePrescriptionPDF = async (prescription: any): Promise<string
     y += 20;
   });
 
-  // Notes
   if (prescription.notes) {
     doc.moveDown();
     doc.fontSize(12).font('Helvetica-Bold').text('Notes:', 50, y);
@@ -168,7 +161,12 @@ export const generatePrescriptionPDF = async (prescription: any): Promise<string
   }
 
   // Footer
-  doc.fontSize(8).text('This is a computer-generated prescription.', { align: 'center' }, doc.page.height - 50);
+  doc.fontSize(8).text(
+    'This is a computer-generated prescription.',
+    50,
+    doc.page.height - 50,
+    { align: 'center' }
+  );
 
   doc.end();
 

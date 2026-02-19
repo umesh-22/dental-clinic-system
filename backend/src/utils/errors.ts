@@ -1,3 +1,5 @@
+import { Request, Response, NextFunction } from 'express';
+
 export class AppError extends Error {
   statusCode: number;
   isOperational: boolean;
@@ -10,7 +12,13 @@ export class AppError extends Error {
   }
 }
 
-export const errorHandler = (err: Error | AppError, req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+// Error handler middleware
+export const errorHandler = (
+  err: Error | AppError,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       success: false,
